@@ -1,17 +1,39 @@
-const express = require("express");
+const express = require('express');
 const app = express();
-const userRoutes = require("./routes/user.routes");
+const dotenv = require('dotenv');
+const { errorHandler } = require('./middleware/errorHandler');
 
-const dotenv = require("dotenv");
+// Load environment variables
 dotenv.config();
 
+// Middleware
 app.use(express.json());
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-//api-end-points
-app.use("/", (req, res) => {
-    res.send("Welcome to the API");
+// Routes
+app.use('/api/auth', require('./routes/user.routes'));
+app.use('/api/lessons', require('./routes/lesson.routes'));
+app.use('/api/progress', require('./routes/progress.routes'));
+app.use('/api/chat', require('./routes/chat.routes'));
+
+// Welcome route
+app.get('/', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Welcome to PathShala Language Learning API',
+    version: '1.0.0'
+  });
 });
 
-app.use("/api/auth", userRoutes);
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    success: false, 
+    message: 'Route not found' 
+  });
+});
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 module.exports = app;

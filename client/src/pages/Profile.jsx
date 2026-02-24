@@ -2,27 +2,72 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Calendar, Award, TrendingUp, Edit3 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/authService';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     email: user?.email || '',
     bio: '',
-    joinDate: ''
+    nativeLanguage: 'English',
+    targetLanguages: []
   });
   const [achievements, setAchievements] = useState([]);
-  const [learningStats, setLearningStats] = useState([]);
 
   useEffect(() => {
-    // TODO: Fetch profile data from API
-  }, []);
+    if (user) {
+      fetchProfileData();
+    }
+  }, [user]);
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // TODO: Save profile data to API
+  const fetchProfileData = async () => {
+    try {
+      const response = await authService.getProfile();
+      const data = response.data.data;
+      setProfileData({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        bio: data.bio || '',
+        nativeLanguage: data.nativeLanguage || 'English',
+        targetLanguages: data.targetLanguages || []
+      });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load profile');
+    }
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await authService.updateProfile({
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        bio: profileData.bio,
+        nativeLanguage: profileData.nativeLanguage,
+        targetLanguages: profileData.targetLanguages
+      });
+      setIsEditing(false);
+      alert('Profile updated successfully!');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProfileData({
+      ...profileData,
+      [name]: value
+    });
   };
 
   return (
@@ -50,22 +95,46 @@ const Profile = () => {
                   </div>
                   <div className="flex items-center space-x-1">
                     <Calendar size={16} />
-                    <span>Joined {profileData.joinDate}</span>
+                    <span>Joined {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</span>
                   </div>
                 </div>
               </div>
             </div>
             
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsEditing(!isEditing)}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              <Edit3 size={16} />
-              <span>{isEditing ? 'Cancel' : 'Edit Profile'}</span>
-            </motion.button>
+            <div className="flex space-x-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsEditing(!isEditing)}
+                className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <Edit3 size={16} />
+                <span>{isEditing ? 'Cancel' : 'Edit Profile'}</span>
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  logout();
+                  window.location.href = '/';
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Logout
+              </motion.button>
+            </div>
           </div>
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300"
+            >
+              {error}
+            </motion.div>
+          )}
 
           {isEditing ? (
             <motion.div
@@ -80,8 +149,9 @@ const Profile = () => {
                   </label>
                   <input
                     type="text"
+                    name="firstName"
                     value={profileData.firstName}
-                    onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
+                    onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
@@ -91,8 +161,9 @@ const Profile = () => {
                   </label>
                   <input
                     type="text"
+                    name="lastName"
                     value={profileData.lastName}
-                    onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                    onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
@@ -102,10 +173,11 @@ const Profile = () => {
                   Bio
                 </label>
                 <textarea
+                  name="bio"
                   value={profileData.bio}
-                  onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
+                  onChange={handleChange}
                   rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                 />
               </div>
               <div className="flex space-x-4">
@@ -113,15 +185,16 @@ const Profile = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSave}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  disabled={loading}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save Changes
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </motion.button>
               </div>
             </motion.div>
           ) : (
             <div>
-              <p className="text-gray-600 dark:text-gray-300">{profileData.bio}</p>
+              <p className="text-gray-600 dark:text-gray-300">{profileData.bio || 'No bio added yet'}</p>
             </div>
           )}
         </motion.div>
@@ -135,15 +208,21 @@ const Profile = () => {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Learning Statistics</h2>
             
             <div className="grid grid-cols-2 gap-6 mb-8">
-              {learningStats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <stat.icon className="text-purple-600 dark:text-purple-400" size={24} />
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <TrendingUp className="text-purple-600 dark:text-purple-400" size={24} />
                 </div>
-              ))}
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{user?.progress || 0}%</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Overall Progress</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Award className="text-blue-600 dark:text-blue-400" size={24} />
+                </div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{user?.totalLessonsCompleted || 0}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Lessons Completed</p>
+              </div>
             </div>
 
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
@@ -172,46 +251,18 @@ const Profile = () => {
             animate={{ opacity: 1, x: 0 }}
             className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
           >
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Achievements</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Target Languages</h2>
             
-            <div className="space-y-4">
-              {achievements.map((achievement, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`flex items-center space-x-3 p-3 rounded-lg ${
-                    achievement.earned 
-                      ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
-                      : 'bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600'
-                  }`}
-                >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    achievement.earned 
-                      ? 'bg-green-500 text-white' 
-                      : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
-                  }`}>
-                    <Award size={20} />
+            <div className="space-y-2">
+              {user?.targetLanguages && user.targetLanguages.length > 0 ? (
+                user.targetLanguages.map((lang, index) => (
+                  <div key={index} className="p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                    <p className="font-medium text-purple-700 dark:text-purple-300">{lang}</p>
                   </div>
-                  <div className="flex-1">
-                    <h4 className={`font-medium ${
-                      achievement.earned 
-                        ? 'text-green-800 dark:text-green-400' 
-                        : 'text-gray-600 dark:text-gray-400'
-                    }`}>
-                      {achievement.title}
-                    </h4>
-                    <p className={`text-sm ${
-                      achievement.earned 
-                        ? 'text-green-600 dark:text-green-500' 
-                        : 'text-gray-500 dark:text-gray-500'
-                    }`}>
-                      {achievement.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-600 dark:text-gray-400 text-sm">No target languages set</p>
+              )}
             </div>
           </motion.div>
         </div>

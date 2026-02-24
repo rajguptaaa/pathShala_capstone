@@ -84,14 +84,14 @@ const Landing = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Why Choose पाठshala?
+              Why Choose PathShala?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
               Experience the future of language learning with our cutting-edge features
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -126,7 +126,7 @@ const Landing = () => {
               Ready to Start Your Language Journey?
             </h2>
             <p className="text-xl text-purple-100 mb-8">
-              Join thousands of learners who are already mastering new languages with Patshala
+              Join thousands of learners who are already mastering new languages with PathShala
             </p>
             <Link to="/auth">
               <motion.button

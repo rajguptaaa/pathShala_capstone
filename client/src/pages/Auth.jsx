@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,21 +13,32 @@ const Auth = () => {
     email: '',
     password: ''
   });
+  const [localError, setLocalError] = useState('');
   
-  const { login, signup, isLoading } = useAuth();
+  const { login, signup, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLocalError('');
+    
     try {
       if (isLogin) {
+        if (!formData.email || !formData.password) {
+          setLocalError('Please fill all fields');
+          return;
+        }
         await login(formData.email, formData.password);
       } else {
+        if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+          setLocalError('Please fill all fields');
+          return;
+        }
         await signup(formData.firstName, formData.lastName, formData.email, formData.password);
       }
       navigate('/dashboard');
-    } catch (error) {
-      console.error('Auth error:', error);
+    } catch (err) {
+      setLocalError(err.message);
     }
   };
 
@@ -37,6 +48,8 @@ const Auth = () => {
       [e.target.name]: e.target.value
     });
   };
+
+  const displayError = localError || error;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-12 px-4">
@@ -58,6 +71,17 @@ const Auth = () => {
             {isLogin ? 'Sign in to continue learning' : 'Start your language journey today'}
           </p>
         </div>
+
+        {displayError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start space-x-3"
+          >
+            <AlertCircle className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" size={20} />
+            <p className="text-sm text-red-700 dark:text-red-300">{displayError}</p>
+          </motion.div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {!isLogin && (
@@ -127,9 +151,16 @@ const Auth = () => {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+            {isLoading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Loading...
+              </>
+            ) : (
+              isLogin ? 'Sign In' : 'Create Account'
+            )}
           </motion.button>
         </form>
 
@@ -137,7 +168,11 @@ const Auth = () => {
           <p className="text-gray-600 dark:text-gray-300">
             {isLogin ? "Don't have an account?" : 'Already have an account?'}
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setLocalError('');
+                setFormData({ firstName: '', lastName: '', email: '', password: '' });
+              }}
               className="ml-2 text-purple-600 dark:text-purple-400 font-semibold hover:underline"
             >
               {isLogin ? 'Sign Up' : 'Sign In'}

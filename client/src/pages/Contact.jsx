@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, MessageCircle, Clock } from 'lucide-react';
 
@@ -10,20 +10,60 @@ const Contact = () => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [contactInfo, setContactInfo] = useState([]);
-  const [faqs, setFaqs] = useState([]);
+  const [successMessage, setSuccessMessage] = useState(false);
 
-  useEffect(() => {
-    // TODO: Fetch contact info and FAQs from API
-  }, []);
+  const contactInfo = [
+    {
+      icon: Mail,
+      title: 'Email',
+      details: 'support@pathshala.com',
+      description: 'We reply within 24 hours'
+    },
+    {
+      icon: Phone,
+      title: 'Phone',
+      details: '+1 (555) 123-4567',
+      description: 'Mon-Fri, 9AM-6PM EST'
+    },
+    {
+      icon: MapPin,
+      title: 'Address',
+      details: 'San Francisco, CA',
+      description: 'United States'
+    }
+  ];
+
+  const faqs = [
+    {
+      question: 'How do I get started?',
+      answer: 'Simply create an account on our website, and you can start learning immediately with our free lessons.'
+    },
+    {
+      question: 'Can I cancel anytime?',
+      answer: 'Yes, you can cancel your subscription at any time without any penalties.'
+    },
+    {
+      question: 'Do you offer offline learning?',
+      answer: 'Yes, you can download lessons to learn offline using our mobile app.'
+    },
+    {
+      question: 'What languages do you teach?',
+      answer: 'We currently offer Spanish, French, German, Hindi, Japanese, Chinese, and Arabic.'
+    }
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // TODO: Submit form to API
-    setIsSubmitting(false);
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    // Simulate API call
+    setTimeout(() => {
+      setSuccessMessage(true);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      setIsSubmitting(false);
+      
+      setTimeout(() => setSuccessMessage(false), 5000);
+    }, 1000);
   };
 
   const handleChange = (e) => {
@@ -45,7 +85,7 @@ const Contact = () => {
             Get in Touch
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Have questions about Patshala? We'd love to hear from you. 
+            Have questions about PathShala? We'd love to hear from you. 
             Send us a message and we'll respond as soon as possible.
           </p>
         </motion.div>
@@ -112,6 +152,16 @@ const Contact = () => {
                   Send us a Message
                 </h2>
               </div>
+
+              {successMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-700 dark:text-green-300"
+                >
+                  Thank you! Your message has been sent successfully.
+                </motion.div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
