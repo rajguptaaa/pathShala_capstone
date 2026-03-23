@@ -5,22 +5,28 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Check if user is already logged in
+  // On mount: verify token and load full profile
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    const token = localStorage.getItem('token');
+    if (token) {
+      authService.getProfile()
+        .then(res => setUser(res.data.data))
+        .catch(() => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
     }
   }, []);
 
@@ -29,12 +35,13 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authService.login(email, password);
-      const { token, user } = response.data;
-      
+      const { token } = response.data;
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
-      
+      // Fetch full profile to get createdAt etc.
+      const profileRes = await authService.getProfile();
+      const fullUser = profileRes.data.data;
+      localStorage.setItem('user', JSON.stringify(fullUser));
+      setUser(fullUser);
       return response.data;
     } catch (err) {
       const message = err.response?.data?.message || 'Login failed';
@@ -50,12 +57,12 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authService.signup(firstName, lastName, email, password);
-      const { token, user } = response.data;
-      
+      const { token } = response.data;
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
-      
+      const profileRes = await authService.getProfile();
+      const fullUser = profileRes.data.data;
+      localStorage.setItem('user', JSON.stringify(fullUser));
+      setUser(fullUser);
       return response.data;
     } catch (err) {
       const message = err.response?.data?.message || 'Signup failed';
@@ -73,8 +80,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, isLoading, error }}>
-      {children}
+    <AuthContext.Provider value={{ user, setUser, login, signup, logout, isLoading, error }}>
+      {!isLoading && children}
     </AuthContext.Provider>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, MessageCircle, Clock } from 'lucide-react';
+import api from '../services/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -55,15 +56,16 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await api.post('/contact/send', formData);
       setSuccessMessage(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
-      setIsSubmitting(false);
-      
       setTimeout(() => setSuccessMessage(false), 5000);
-    }, 1000);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e) => {

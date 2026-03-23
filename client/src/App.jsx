@@ -13,7 +13,8 @@ import Profile from './pages/Profile';
 import Contact from './pages/Contact';
 
 const ProtectedRoute = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  if (isLoading) return <div className="flex justify-center items-center h-screen"><div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" /></div>;
   return user ? children : <Navigate to="/auth" />;
 };
 

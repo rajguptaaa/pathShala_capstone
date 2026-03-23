@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
 
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -53,8 +53,10 @@ const Profile = () => {
         nativeLanguage: profileData.nativeLanguage,
         targetLanguages: profileData.targetLanguages
       });
+      // Refresh full user in context
+      const res = await authService.getProfile();
+      setUser(res.data.data);
       setIsEditing(false);
-      alert('Profile updated successfully!');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update profile');
     } finally {

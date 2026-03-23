@@ -15,11 +15,15 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
+// Ensure models are registered
+require('./models/Achievement');
+
 // Routes
 app.use('/api/auth', require('./routes/user.routes'));
 app.use('/api/lessons', require('./routes/lesson.routes'));
 app.use('/api/progress', require('./routes/progress.routes'));
 app.use('/api/chat', require('./routes/chat.routes'));
+app.use('/api/contact', require('./routes/contact.routes'));
 
 // Welcome route
 app.get('/', (req, res) => {
