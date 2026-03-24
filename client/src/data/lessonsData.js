@@ -1,4 +1,3 @@
-// Static lesson data for all languages and levels
 
 export const LANGUAGES = ['Spanish', 'French', 'German', 'Hindi', 'Japanese', 'Chinese', 'Arabic'];
 export const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
@@ -6,39 +5,81 @@ export const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
 export const lessonsData = {
   Spanish: {
     Beginner: {
-      id: 'es-beg',
-      title: 'Spanish for Beginners',
-      description: 'Start your Spanish journey with greetings, numbers, and basic phrases.',
-      duration: '30 min',
-      rating: 4.8,
-      vocabulary: [
-        { word: 'Hola', translation: 'Hello', pronunciation: 'OH-lah' },
-        { word: 'Gracias', translation: 'Thank you', pronunciation: 'GRAH-syahs' },
-        { word: 'Por favor', translation: 'Please', pronunciation: 'por fah-BOR' },
-        { word: 'Sí / No', translation: 'Yes / No', pronunciation: 'see / noh' },
-        { word: 'Buenas noches', translation: 'Good night', pronunciation: 'BWAY-nahs NOH-chays' },
-        { word: 'Buenos días', translation: 'Good morning', pronunciation: 'BWAY-nohs DEE-ahs' },
-        { word: 'Me llamo', translation: 'My name is', pronunciation: 'may YAH-moh' },
-        { word: 'Mucho gusto', translation: 'Nice to meet you', pronunciation: 'MOO-choh GOO-stoh' },
-      ],
-      grammar: [
-        {
-          rule: 'Subject Pronouns: yo (I), tú (you), él/ella (he/she), nosotros (we), ellos (they)',
-          examples: ['Yo soy estudiante.', 'Tú eres amable.', 'Ella es doctora.']
-        },
-        {
-          rule: 'Verb "ser" (to be): soy, eres, es, somos, son',
-          examples: ['Yo soy de México.', 'Nosotros somos amigos.']
-        }
-      ],
-      exercises: [
-        { type: 'multiple-choice', question: 'How do you say "Hello" in Spanish?', options: ['Adios', 'Hola', 'Gracias', 'Por favor'], correctAnswer: 'Hola', points: 10 },
-        { type: 'fill-blank', question: 'Me _____ María. (My name is María)', options: ['es', 'llamo', 'soy', 'tengo'], correctAnswer: 'llamo', points: 10 },
-        { type: 'translation', question: 'Translate: "Thank you very much"', options: ['Hola amigo', 'Muchas gracias', 'Buenos días', 'De nada'], correctAnswer: 'Muchas gracias', points: 15 },
-        { type: 'sentence-completion', question: 'Complete: "Buenos _____" (Good morning)', options: ['noches', 'días', 'tardes', 'años'], correctAnswer: 'días', points: 10 },
-        { type: 'multiple-choice', question: 'What does "Mucho gusto" mean?', options: ['Thank you', 'Goodbye', 'Nice to meet you', 'How are you?'], correctAnswer: 'Nice to meet you', points: 10 },
-      ]
-    },
+  id: 'es-beg',
+  title: 'Spanish for Beginners',
+  description: 'Start your Spanish journey.',
+  duration: '30 min',
+  rating: 4.8,
+
+  vocabulary: [
+    { word: 'Hola', translation: 'Hello', pronunciation: 'OH-lah' },
+    { word: 'Gracias', translation: 'Thank you', pronunciation: 'GRAH-syahs' }
+  ],
+
+  grammar: [
+    {
+      rule: 'Basic greetings',
+      examples: ['Hola', 'Buenos días']
+    }
+  ],
+
+  exercises: [
+    // MCQ
+    { type: 'multiple-choice', question: 'Hello in Spanish?', options: ['Hola', 'Gracias', 'Adios', 'Sí'], correctAnswer: 'Hola', points: 10 },
+    { type: 'multiple-choice', question: '"Gracias" means?', options: ['Please', 'Thanks', 'Sorry', 'Bye'], correctAnswer: 'Thanks', points: 10 },
+
+    // Fill blanks
+    { type: 'fill-blank', question: 'Me _____ Juan', options: ['soy', 'llamo', 'tengo'], correctAnswer: 'llamo', points: 10 },
+    { type: 'fill-blank', question: 'Buenos _____', options: ['días', 'noches', 'hola'], correctAnswer: 'días', points: 10 },
+
+    // Translation
+    { type: 'translation', question: 'Good night', options: ['Buenas noches', 'Hola', 'Gracias'], correctAnswer: 'Buenas noches', points: 15 },
+
+    // Spelling
+    { type: 'spelling', question: 'Correct spelling?', options: ['Grasias', 'Gracias', 'Graciass'], correctAnswer: 'Gracias', points: 10 },
+
+    // Error detection
+    { type: 'error-detection', question: 'Wrong sentence?', options: ['Hola amigo', 'Gracias mucho'], correctAnswer: 'Gracias mucho', points: 15 },
+
+    // Sentence correction
+    { type: 'sentence-correction', question: 'Correct sentence?', options: ['Me llama Juan', 'Me llamo Juan'], correctAnswer: 'Me llamo Juan', points: 15 },
+
+    // Sentence completion
+    { type: 'sentence-completion', question: 'Mucho _____', options: ['gusto', 'hola'], correctAnswer: 'gusto', points: 10 },
+
+    // MORE QUESTIONS (to reach ~20)
+    { type: 'multiple-choice', question: '"Sí" means?', options: ['Yes', 'No', 'Please'], correctAnswer: 'Yes', points: 10 },
+    { type: 'multiple-choice', question: '"No" means?', options: ['Yes', 'No', 'Hello'], correctAnswer: 'No', points: 10 },
+
+    { type: 'fill-blank', question: 'Por _____ (Please)', options: ['favor', 'hola'], correctAnswer: 'favor', points: 10 },
+
+    { type: 'translation', question: 'Good morning', options: ['Buenos días', 'Buenas noches'], correctAnswer: 'Buenos días', points: 15 },
+
+    { type: 'spelling', question: 'Correct?', options: ['Ola', 'Hola'], correctAnswer: 'Hola', points: 10 },
+
+    { type: 'error-detection', question: 'Wrong?', options: ['Buenos días', 'Buenos noche'], correctAnswer: 'Buenos noche', points: 15 },
+
+    { type: 'sentence-correction', question: 'Fix:', options: ['Yo soy Juan', 'Yo Juan soy'], correctAnswer: 'Yo soy Juan', points: 15 },
+
+    { type: 'sentence-completion', question: 'Buenas _____', options: ['noches', 'días'], correctAnswer: 'noches', points: 10 }
+  ],
+
+  // NEW SECTIONS
+  review: [
+    { question: 'What is Hola?', answer: 'Hello' },
+    { question: 'Meaning of Gracias?', answer: 'Thank you' }
+  ],
+
+  speaking: [
+    { prompt: 'Introduce yourself in Spanish' },
+    { prompt: 'Say good morning and your name' }
+  ],
+
+  listening: [
+    { prompt: 'Listen to "Hola" and repeat' },
+    { prompt: 'Identify "Gracias" in audio' }
+  ]
+},
     Intermediate: {
       id: 'es-int',
       title: 'Spanish Intermediate',
@@ -562,3 +603,5 @@ export const lessonsData = {
 export const getLessonData = (language, level) => {
   return lessonsData[language]?.[level] || null;
 };
+
+
