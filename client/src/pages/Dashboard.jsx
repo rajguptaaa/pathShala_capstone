@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, TrendingUp, Clock, Award, Target, Calendar } from 'lucide-react';
+import { BookOpen, TrendingUp, Clock, Award, Target, Calendar, Crown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { progressService } from '../services/progressService';
 
@@ -155,32 +156,39 @@ const Dashboard = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <motion.a
-                    href="/lessons"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <Link
+                    to="/lessons"
                     className="block p-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-medium text-center hover:shadow-lg transition-all"
                   >
                     Start a Lesson
-                  </motion.a>
+                  </Link>
                   
-                  <motion.a
-                    href="/chat"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <Link
+                    to="/chat"
                     className="block p-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-medium text-center hover:shadow-lg transition-all"
                   >
                     Practice with AI
-                  </motion.a>
+                  </Link>
                   
-                  <motion.a
-                    href="/profile"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <Link
+                    to="/profile"
                     className="block p-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-medium text-center hover:shadow-lg transition-all"
                   >
                     View Profile
-                  </motion.a>
+                  </Link>
+
+                  {!user?.isPremium && (
+                    <Link
+                      to="/premium"
+                      className="block p-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg font-medium text-center hover:shadow-lg transition-all"
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <Crown size={18} />
+                        <span>Upgrade to Premium</span>
+                      </div>
+                      <p className="text-xs text-yellow-100 mt-1">Unlock voice AI conversations</p>
+                    </Link>
+                  )}
                 </div>
               </motion.div>
             </div>

@@ -17,7 +17,10 @@ const userSchema = new mongoose.Schema({
   achievements: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Achievement' }],
   enrolledLessons: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Lesson' }],
   completedLessons: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Lesson' }],
-  lastActive: { type: Date, default: Date.now }
+  lastActive: { type: Date, default: Date.now },
+  isPremium: { type: Boolean, default: false },
+  premiumSince: { type: Date, default: null },
+  razorpayPaymentId: { type: String, default: null }
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

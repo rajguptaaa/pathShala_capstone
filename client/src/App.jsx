@@ -11,6 +11,7 @@ import Lessons from './pages/Lessons';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Contact from './pages/Contact';
+import Premium from './pages/Premium';
 
 const ProtectedRoute = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -28,6 +29,7 @@ const AppContent = () => {
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/premium" element={<Premium />} />
             <Route 
               path="/dashboard" 
               element={

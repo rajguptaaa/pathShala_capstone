@@ -7,7 +7,7 @@ exports.generateToken = (id) => {
 };
 
 exports.sendTokenResponse = (user, statusCode, res) => {
-  const token = this.generateToken(user._id);
+  const token = exports.generateToken(user._id);
 
   res.status(statusCode).json({
     success: true,
@@ -18,7 +18,9 @@ exports.sendTokenResponse = (user, statusCode, res) => {
       lastName: user.lastName,
       email: user.email,
       level: user.level,
-      progress: user.progress
+      progress: user.progress,
+      isPremium: user.isPremium || false,
+      premiumSince: user.premiumSince || null
     }
   });
 };

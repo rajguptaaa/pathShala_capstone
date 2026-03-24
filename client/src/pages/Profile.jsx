@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Calendar, Award, TrendingUp, Edit3 } from 'lucide-react';
+import { User, Mail, Calendar, Award, TrendingUp, Edit3, Crown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
 
@@ -90,6 +91,18 @@ const Profile = () => {
                   {profileData.firstName} {profileData.lastName}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-300 mt-1">{user?.level} Learner</p>
+                {user?.isPremium && (
+                  <div className="flex items-center gap-1 mt-2">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-full text-xs font-bold">
+                      <Crown size={12} /> Premium Member
+                    </span>
+                  </div>
+                )}
+                {!user?.isPremium && (
+                  <Link to="/premium" className="inline-flex items-center gap-1 mt-2 px-3 py-1 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-medium hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors">
+                    <Crown size={12} /> Upgrade to Premium
+                  </Link>
+                )}
                 <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
                   <div className="flex items-center space-x-1">
                     <Mail size={16} />

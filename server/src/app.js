@@ -24,6 +24,7 @@ app.use('/api/lessons', require('./routes/lesson.routes'));
 app.use('/api/progress', require('./routes/progress.routes'));
 app.use('/api/chat', require('./routes/chat.routes'));
 app.use('/api/contact', require('./routes/contact.routes'));
+app.use('/api/payment', require('./routes/payment.routes'));
 
 // Welcome route
 app.get('/', (req, res) => {

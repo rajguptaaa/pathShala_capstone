@@ -23,14 +23,14 @@ const Contact = () => {
     {
       icon: Phone,
       title: 'Phone',
-      details: '+1 (555) 123-4567',
+      details: '+91 8759158886',
       description: 'Mon-Fri, 9AM-6PM EST'
     },
     {
       icon: MapPin,
       title: 'Address',
-      details: 'San Francisco, CA',
-      description: 'United States'
+      details: 'LPU - Phagrawa, Punjab',
+      description: 'India'
     }
   ];
 

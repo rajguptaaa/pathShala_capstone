@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,8 +15,11 @@ const Auth = () => {
   });
   const [localError, setLocalError] = useState('');
   
-  const { login, signup, isLoading, error } = useAuth();
+  const { login, signup, isLoading, error, user } = useAuth();
   const navigate = useNavigate();
+
+  // If already logged in, redirect to dashboard
+  if (user) return <Navigate to="/dashboard" replace />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
