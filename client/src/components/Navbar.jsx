@@ -89,7 +89,6 @@ const TranslatorPanel = ({ onClose }) => {
               <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">Translation in {langName}</p>
               <p className="text-gray-900 dark:text-white font-medium">{result.translatedText}</p>
             </div>
-            <p className="text-xs text-gray-400 text-center">Powered by MyMemory API (Free)</p>
           </motion.div>
         )}
       </div>

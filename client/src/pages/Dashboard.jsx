@@ -4,9 +4,11 @@ import { BookOpen, TrendingUp, Clock, Award, Target, Calendar, Crown } from 'luc
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { progressService } from '../services/progressService';
+import { useProgress } from '../hooks/useProgress';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { progress: localProgress } = useProgress();
   const [stats, setStats] = useState(null);
   const [recentLessons, setRecentLessons] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -107,12 +109,14 @@ const Dashboard = () => {
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-600 dark:text-gray-400">Overall Progress</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{user?.progress || 0}%</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {(() => { const c = Object.values(localProgress).filter(p => p?.status === 'completed').length; return Math.round((c / 21) * 100); })()}%
+                    </span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={{ width: `${user?.progress || 0}%` }}
+                      animate={{ width: `${(() => { const c = Object.values(localProgress).filter(p => p?.status === 'completed').length; return Math.round((c / 21) * 100); })()}%` }}
                       transition={{ duration: 1, delay: 0.5 }}
                       className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full"
                     />
