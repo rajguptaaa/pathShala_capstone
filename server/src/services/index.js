@@ -1,24 +1,19 @@
-// Choose between paid and free services based on .env
+// Gemini-only AI service — OpenAI removed
+const geminiService = require('./geminiService');
 
-const useLocalLLM = process.env.USE_LOCAL_LLM === 'true';
+const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim();
 
-let aiService;
-let speechService;
-
-if (useLocalLLM) {
-  aiService = require('./localLLMService');
-  speechService = require('./offlineSpeechService');
+if (!GEMINI_API_KEY) {
+  console.error('[AI] FATAL: GEMINI_API_KEY missing in server/.env');
 } else {
-  // Fallback to original services if needed
-  aiService = require('./openaiService');
-  speechService = require('./speechService');
+  console.log('[AI] Gemini service loaded. Model:', process.env.GEMINI_MODEL || 'gemini-1.5-flash');
 }
 
 module.exports = {
-  generateChatResponse: aiService.generateChatResponse,
-  correctText: aiService.correctText,
-  translateText: aiService.translateText,
-  generateLessonContent: aiService.generateLessonContent,
-  textToSpeech: speechService.textToSpeech,
-  speechToText: speechService.speechToText
+  generateChatResponse:  geminiService.generateChatResponse,
+  correctText:           geminiService.correctText,
+  translateText:         geminiService.translateText,
+  generateLessonContent: geminiService.generateLessonContent,
+  textToSpeech:  async (text, lang) => ({ text, lang, note: 'Use browser Web Speech API' }),
+  speechToText:  async () => ({ note: 'Use browser Web Speech API' }),
 };
