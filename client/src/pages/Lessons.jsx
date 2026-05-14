@@ -4,12 +4,16 @@ import { Play, CheckCircle, Clock, Star, Filter, BookOpen, RotateCcw } from 'luc
 import { lessonsData, LANGUAGES, LEVELS } from '../data/lessonsData';
 import LessonModal from '../components/LessonModal';
 import { useProgress } from '../hooks/useProgress';
+import { useAuth } from '../context/AuthContext';
 
 const Lessons = () => {
+  const { user } = useAuth();
+  const userIdentifier = user?.id || user?._id || user?.email;
+  const { progress, getLessonProgress } = useProgress(userIdentifier);
+
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [activeLesson, setActiveLesson] = useState(null);
-  const { progress, isCompleted, getLessonProgress } = useProgress();
 
   const getLevelColor = (level) => {
     switch (level) {
@@ -33,13 +37,39 @@ const Lessons = () => {
     }
   }
 
-  const filteredLessons = allLessons.filter(l => {
+  const lookupLessonProgress = ({ language, level, data }) => {
+    const direct = getLessonProgress(data.id);
+    if (direct) return direct;
+
+    if (!progress) return null;
+
+    const title = data.title?.toString().trim().toLowerCase();
+    return Object.values(progress).find((item) => {
+      if (!item) return false;
+      if (item.lessonKey === data.id) return true;
+      if (
+        item.lessonTitle?.toString().trim().toLowerCase() === title &&
+        item.lessonLanguage === language &&
+        item.lessonLevel === level
+      ) {
+        return true;
+      }
+      return false;
+    }) || null;
+  };
+
+  const lessonCompleted = (lessonProg) =>
+    lessonProg?.status === 'completed' || (lessonProg?.progress ?? 0) >= 100;
+
+  const filteredLessons = allLessons.filter((l) => {
     const langMatch = selectedLanguage === 'all' || l.language === selectedLanguage;
     const levelMatch = selectedLevel === 'all' || l.level === selectedLevel;
     return langMatch && levelMatch;
   });
 
-  const completedCount = allLessons.filter(l => isCompleted(l.data.id)).length;
+  const completedCount = allLessons.reduce((count, lesson) => {
+    return lessonCompleted(lookupLessonProgress(lesson)) ? count + 1 : count;
+  }, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -66,7 +96,6 @@ const Lessons = () => {
           )}
         </motion.div>
 
-        {/* Filters */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-8">
           <div className="flex items-center space-x-4 mb-4">
@@ -94,11 +123,10 @@ const Lessons = () => {
           </div>
         </motion.div>
 
-        {/* Lessons grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredLessons.map(({ language, level, data }, index) => {
-            const completed = isCompleted(data.id);
-            const lessonProg = getLessonProgress(data.id);
+            const lessonProg = lookupLessonProgress({ language, level, data });
+            const completed = lessonCompleted(lessonProg);
             const isQuizCompleted = completed && lessonProg?.type !== 'reading';
             const isReadingCompleted = completed && lessonProg?.type === 'reading';
 
@@ -107,12 +135,9 @@ const Lessons = () => {
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}
                 whileHover={{ y: -5 }}
                 className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden relative ${completed ? 'ring-2 ring-green-400 dark:ring-green-500' : ''}`}>
-
-                {/* Completed banner */}
                 {completed && (
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 to-emerald-500" />
                 )}
-
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-3">
                     <div className="text-3xl">{langFlags[language]}</div>
@@ -129,7 +154,6 @@ const Lessons = () => {
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{data.title}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{data.description}</p>
 
-                  {/* Quiz score if completed */}
                   {isQuizCompleted && lessonProg?.bestScore !== undefined && (
                     <div className="mb-3 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg flex items-center justify-between text-xs">
                       <span className="text-purple-600 dark:text-purple-400 font-medium">
@@ -156,7 +180,8 @@ const Lessons = () => {
                       completed
                         ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
                         : 'bg-purple-600 text-white hover:bg-purple-700'
-                    }`}>
+                    }`}
+                  >
                     {completed ? (
                       <><RotateCcw size={16} /><span>Review / Re-attempt</span></>
                     ) : (
