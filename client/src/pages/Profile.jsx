@@ -4,9 +4,16 @@ import { User, Mail, Calendar, Award, TrendingUp, Edit3, Crown } from 'lucide-re
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
+import { useProgress } from '../hooks/useProgress';
+import { LANGUAGES } from '../data/lessonsData';
+
+const TOTAL_LESSONS = 21;
 
 const Profile = () => {
   const { user, setUser, logout } = useAuth();
+  const userIdentifier = user?.id || user?._id || user?.email;
+  const { progress: localProgress, refresh } = useProgress(userIdentifier);
+
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,15 +23,29 @@ const Profile = () => {
     email: user?.email || '',
     bio: '',
     nativeLanguage: 'English',
-    targetLanguages: []
+    targetLanguages: user?.targetLanguages || []
   });
   const [achievements, setAchievements] = useState([]);
+
+  const completedCount = Object.values(localProgress || {}).filter((item) => item.status === 'completed').length;
+
+  const overallProgress = user?.progress > 0
+    ? user.progress
+    : TOTAL_LESSONS > 0
+      ? Math.round((completedCount / TOTAL_LESSONS) * 100)
+      : 0;
+
+  const lessonsCompleted = user?.totalLessonsCompleted > 0 ? user.totalLessonsCompleted : completedCount;
+  const currentTargetLanguages = profileData.targetLanguages.length
+    ? profileData.targetLanguages
+    : user?.targetLanguages || [];
 
   useEffect(() => {
     if (user) {
       fetchProfileData();
+      refresh();
     }
-  }, [user]);
+  }, [user, refresh]);
 
   const fetchProfileData = async () => {
     try {
@@ -70,6 +91,14 @@ const Profile = () => {
     setProfileData({
       ...profileData,
       [name]: value
+    });
+  };
+
+  const handleTargetLanguagesChange = (e) => {
+    const options = Array.from(e.target.selectedOptions).map((option) => option.value);
+    setProfileData({
+      ...profileData,
+      targetLanguages: options
     });
   };
 
@@ -195,6 +224,27 @@ const Profile = () => {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Target Languages
+                </label>
+                <select
+                  name="targetLanguages"
+                  multiple
+                  value={profileData.targetLanguages}
+                  onChange={handleTargetLanguagesChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  {LANGUAGES.map((lang) => (
+                    <option key={lang} value={lang}>
+                      {lang}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Hold Ctrl (Windows) / Cmd (Mac) to select multiple.
+                </p>
+              </div>
               <div className="flex space-x-4">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -227,7 +277,7 @@ const Profile = () => {
                 <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
                   <TrendingUp className="text-purple-600 dark:text-purple-400" size={24} />
                 </div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{user?.progress || 0}%</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{overallProgress}%</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Overall Progress</p>
               </div>
               
@@ -235,7 +285,7 @@ const Profile = () => {
                 <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Award className="text-blue-600 dark:text-blue-400" size={24} />
                 </div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{user?.totalLessonsCompleted || 0}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{lessonsCompleted}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Lessons Completed</p>
               </div>
             </div>
@@ -269,14 +319,32 @@ const Profile = () => {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Target Languages</h2>
             
             <div className="space-y-2">
-              {user?.targetLanguages && user.targetLanguages.length > 0 ? (
-                user.targetLanguages.map((lang, index) => (
+              {currentTargetLanguages.length > 0 ? (
+                currentTargetLanguages.map((lang, index) => (
                   <div key={index} className="p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
                     <p className="font-medium text-purple-700 dark:text-purple-300">{lang}</p>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-600 dark:text-gray-400 text-sm">No target languages set</p>
+                <div className="space-y-4">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">No target languages set</p>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Set Target Languages
+                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    {LANGUAGES.map((lang) => (
+                      <span
+                        key={lang}
+                        className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                      >
+                        {lang}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </motion.div>

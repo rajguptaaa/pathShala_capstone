@@ -7,6 +7,9 @@ import { useAuth } from '../context/AuthContext';
 const Landing = () => {
   const { user } = useAuth();
 
+  const isNewUser = user?.isNewUser === true || user?.isNewUser === 'true';
+  const welcomeText = isNewUser ? 'Welcome' : 'Welcome back';
+
   const features = [
     { icon: BookOpen, title: 'Adaptive Lessons', description: 'AI-powered lessons that adapt to your learning pace and style across 7 languages.' },
     { icon: Brain, title: 'Gamified Learning', description: 'Fun quizzes, fill-in-the-blanks, translations and more to make learning engaging.' },
@@ -51,7 +54,7 @@ const Landing = () => {
               </div>
               {user && (
                 <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                  {user.isNewUser ? 'Welcome' : 'Welcome back'}, <span className="font-semibold text-purple-600 dark:text-purple-400">{user.firstName}</span>! {user.isNewUser ? 'Start' : 'Continue'} your learning journey.
+                  {welcomeText}, <span className="font-semibold text-purple-600 dark:text-purple-400">{user.firstName}</span>! {isNewUser ? 'Start' : 'Continue'} your learning journey.
                 </p>
               )}
             </motion.div>

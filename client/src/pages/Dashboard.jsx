@@ -1,31 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, TrendingUp, Clock, Award, Target, Calendar, Crown } from 'lucide-react';
+import { BookOpen, TrendingUp, Clock, Target, Calendar, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { progressService } from '../services/progressService';
 import { useProgress } from '../hooks/useProgress';
 
+const TOTAL_LESSONS = 21;
+
 const Dashboard = () => {
   const { user } = useAuth();
-  const { progress: localProgress } = useProgress();
+  const userIdentifier = user?.id || user?._id || user?.email;
+  const { progress: localProgress } = useProgress(userIdentifier);
+
   const [stats, setStats] = useState(null);
   const [recentLessons, setRecentLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const welcomeText = user?.isNewUser ? 'Welcome' : 'Welcome back';
+  const isNewUser = user?.isNewUser === true || user?.isNewUser === 'true';
+  const welcomeText = isNewUser ? 'Welcome' : 'Welcome back';
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user, localProgress]);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       const response = await progressService.getDashboardStats();
       const { stats, recentLessons } = response.data.data;
-      
       setStats(stats);
       setRecentLessons(recentLessons);
     } catch (err) {
@@ -36,12 +42,42 @@ const Dashboard = () => {
     }
   };
 
-  const statCards = stats ? [
-    { icon: BookOpen, label: 'Lessons Completed', value: stats.totalLessons, color: 'bg-blue-500' },
-    { icon: Clock, label: 'Study Time (hrs)', value: stats.studyTime, color: 'bg-green-500' },
-    { icon: TrendingUp, label: 'Current Streak', value: stats.currentStreak, color: 'bg-purple-500' },
-    { icon: Target, label: 'Overall Progress', value: `${stats.overallProgress}%`, color: 'bg-orange-500' }
-  ] : [];
+  const localCompletedCount = Object.values(localProgress || {}).filter((item) => item.status === 'completed').length;
+
+  const effectiveStats = {
+    totalLessons: stats?.totalLessons > 0 ? stats.totalLessons : localCompletedCount,
+    studyTime: stats?.studyTime || 0,
+    currentStreak: stats?.currentStreak || 0,
+    overallProgress:
+      stats?.overallProgress > 0
+        ? stats.overallProgress
+        : Math.round((localCompletedCount / TOTAL_LESSONS) * 100),
+  };
+
+  const localRecentLessons = Object.values(localProgress || {})
+    .filter((item) => item.lessonTitle && item.progress != null)
+    .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0))
+    .slice(0, 3)
+    .map((item) => ({
+      lesson: {
+        title: item.lessonTitle,
+        level: item.lessonLevel,
+      },
+      progress: item.progress,
+    }));
+
+  const serverRecentLessons = Array.isArray(recentLessons)
+    ? recentLessons.filter((lesson) => lesson?.lesson?.title && lesson?.progress != null)
+    : [];
+
+  const displayRecentLessons = serverRecentLessons.length > 0 ? serverRecentLessons : localRecentLessons;
+
+  const statCards = [
+    { icon: BookOpen, label: 'Lessons Completed', value: effectiveStats.totalLessons, color: 'bg-blue-500' },
+    { icon: Clock, label: 'Study Time (hrs)', value: effectiveStats.studyTime, color: 'bg-green-500' },
+    { icon: TrendingUp, label: 'Current Streak', value: effectiveStats.currentStreak, color: 'bg-purple-500' },
+    { icon: Target, label: 'Overall Progress', value: `${effectiveStats.overallProgress}%`, color: 'bg-orange-500' },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -112,13 +148,13 @@ const Dashboard = () => {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-600 dark:text-gray-400">Overall Progress</span>
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {(() => { const c = Object.values(localProgress).filter(p => p?.status === 'completed').length; return Math.round((c / 21) * 100); })()}%
+                      {effectiveStats.overallProgress}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={{ width: `${(() => { const c = Object.values(localProgress).filter(p => p?.status === 'completed').length; return Math.round((c / 21) * 100); })()}%` }}
+                      animate={{ width: `${effectiveStats.overallProgress}%` }}
                       transition={{ duration: 1, delay: 0.5 }}
                       className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full"
                     />
@@ -126,19 +162,24 @@ const Dashboard = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-medium text-gray-900 dark:text-white">Recent Lessons</h3>
-                  {recentLessons.length > 0 ? (
-                    recentLessons.map((lesson, index) => (
+                  {displayRecentLessons.length > 0 ? (
+                    displayRecentLessons.map((lesson, index) => (
                       <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">{lesson.lesson.title}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{lesson.lesson.level}</p>
+                          <h4 className="font-medium text-gray-900 dark:text-white">
+                            {lesson.lesson?.title}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {lesson.lesson?.level || 'Level unknown'}
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{lesson.progress}%</p>
-                          <div className="w-20 bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-1">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {lesson.progress}%
+                          </p>
+                          <div className="w-20 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                             <div
-                              className="bg-purple-500 h-2 rounded-full"
+                              className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full"
                               style={{ width: `${lesson.progress}%` }}
                             />
                           </div>
@@ -146,7 +187,9 @@ const Dashboard = () => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">No lessons started yet</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      No recent lessons started yet.
+                    </p>
                   )}
                 </div>
               </motion.div>
