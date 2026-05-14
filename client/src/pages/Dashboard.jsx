@@ -14,6 +14,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const welcomeText = user?.isNewUser ? 'Welcome' : 'Welcome back';
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -50,7 +52,7 @@ const Dashboard = () => {
           className="mb-8"
         >
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome back, {user?.firstName}! 👋
+            {welcomeText}, {user?.firstName}! 👋
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
             Ready to continue your language learning journey?

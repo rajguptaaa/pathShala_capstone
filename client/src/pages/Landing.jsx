@@ -51,7 +51,7 @@ const Landing = () => {
               </div>
               {user && (
                 <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                  Welcome back, <span className="font-semibold text-purple-600 dark:text-purple-400">{user.firstName}</span>! Continue your learning journey.
+                  {user.isNewUser ? 'Welcome' : 'Welcome back'}, <span className="font-semibold text-purple-600 dark:text-purple-400">{user.firstName}</span>! {user.isNewUser ? 'Start' : 'Continue'} your learning journey.
                 </p>
               )}
             </motion.div>
